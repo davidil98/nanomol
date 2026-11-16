@@ -1,0 +1,20 @@
+# Dependencias de nanomol.
+#
+# Versiones mínimas verificadas; ajustar a las del entorno del laboratorio antes de
+# congelar el fichero (ver docs/PROPUESTA-ORDENACION.md, sección 7).
+
+# Interfaz gráfica
+PyQt5>=5.15,<6          # 5.15.12 verificado
+pyqtgraph>=0.13        # plots en vivo de las curvas de medición
+
+# Datos y cálculo
+numpy>=1.26            # 2.5.4 verificado
+scipy>=1.11            # ajustes de analysis/fitting.py
+h5py>=3.10             # formato de datos; requiere libhdf5
+
+# Instrumentación
+pyvisa>=1.14           # Keithley 2600A por GPIB/USB; requiere runtime VISA (NI-VISA)
+pyserial>=3.5          # 3.5 verificado; Arduino, relés, obturadores, láser, etapas
+
+# Nota: pyvisa no incluye el runtime VISA. En Windows hace falta NI-VISA Runtime;
+# sin él, pyvisa-py es una alternativa para USB, pero no habla GPIB.

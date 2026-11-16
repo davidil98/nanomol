@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "diagram_type": "tree",
+  "meta": {
+    "title": "nanomol — destino propuesto de cada módulo",
+    "locale": "es",
+    "output": ".archify/tree-nanomol-20261116-174500/nanomol-arbol-modulos.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/davidil98/nanomol.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "827189b4a4ba6c4c542fb9775478bb0fc2f05aa8"
+    }
+  },
+  "layout": {
+    "direction": "right"
+  },
+  "nodes": [
+    {
+      "id": "root",
+      "label": "nanomol",
+      "sublabel": "repositorio actual · 4 carpetas"
+    },
+    {
+      "id": "cur_instruments",
+      "parent": "root",
+      "label": "instruments/",
+      "sublabel": "2.107 líneas · hardware",
+      "sources": [
+        { "path": "instruments/keithley_2600A.py", "line": 14, "end_line": 19, "label": "driver SMU" },
+        { "path": "instruments/serial_instrument.py", "line": 16, "end_line": 27, "label": "base serie" }
+      ]
+    },
+    {
+      "id": "cur_experiments",
+      "parent": "root",
+      "label": "experiments/",
+      "sublabel": "2.119 líneas · mediciones",
+      "sources": [
+        { "path": "experiments/transistor_transfer.py", "line": 94, "end_line": 151, "label": "bucle" }
+      ]
+    },
+    {
+      "id": "cur_utils",
+      "parent": "root",
+      "label": "utils/",
+      "sublabel": "462 líneas · datos y widgets",
+      "sources": [
+        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "HDF5" }
+      ]
+    },
+    {
+      "id": "cur_analysis",
+      "parent": "root",
+      "label": "analysis/",
+      "sublabel": "113 líneas · sin uso",
+      "sources": [
+        { "path": "analysis/fitting.py", "line": 14, "end_line": 113, "label": "fitting" }
+      ]
+    },
+    {
+      "id": "cur_firmware",
+      "parent": "root",
+      "label": "instruments/arduino/",
+      "sublabel": "4 sketches .ino",
+      "sources": [
+        { "path": "instruments/arduino/arduino_multiplexer_3_to_12_12_1/arduino_multiplexer_3_to_12_12_1.ino", "line": 1, "end_line": 26, "label": "firmware" }
+      ]
+    },
+    {
+      "id": "p_core",
+      "parent": "root",
+      "label": "PROPUESTA · repositorio git.csic.es/nanomol",
+      "sublabel": "código de instrumentación, propiedad del grupo"
+    },
+    {
+      "id": "p_instruments",
+      "parent": "p_core",
+      "label": "nanomol.instruments",
+      "sublabel": "sin cambios de API",
+      "sources": [
+        { "path": "instruments/visa_instrument.py", "line": 17, "end_line": 38, "label": "base VISA" },
+        { "path": "instruments/serial_instrument.py", "line": 16, "end_line": 38, "label": "base serie" }
+      ]
+    },
+    {
+      "id": "p_keithley",
+      "parent": "p_instruments",
+      "label": "keithley_2600A",
+      "sublabel": "TSP · buffers · scripts",
+      "sources": [
+        { "path": "instruments/keithley_2600A.py", "line": 273, "end_line": 362, "label": "generador de scripts" }
+      ]
+    },
+    {
+      "id": "p_hardware",
+      "parent": "p_instruments",
+      "label": "arduino · newport · optosigma · thorlabs",
+      "sublabel": "controladores de periféricos",
+      "sources": [
+        { "path": "instruments/arduino_shutter_controller.py", "line": 19, "end_line": 40, "label": "obturador" }
+      ]
+    },
+    {
+      "id": "p_services",
+      "parent": "p_core",
+      "label": "nanomol.services",
+      "sublabel": "dominio sin Qt — testeable",
+      "sources": [
+        { "path": "experiments/transistor_transfer.py", "line": 153, "end_line": 182, "label": "configuración de barrido" },
+        { "path": "experiments/transistor_transfer.py", "line": 211, "end_line": 218, "label": "escritura de datos" }
+      ]
+    },
+    {
+      "id": "p_transfer",
+      "parent": "p_services",
+      "label": "TransferService",
+      "sublabel": "barrido V_GS ↔ I_DS"
+    },
+    {
+      "id": "p_output",
+      "parent": "p_services",
+      "label": "OutputService",
+      "sublabel": "barrido V_DS ↔ I_DS"
+    },
+    {
+      "id": "p_timeseries",
+      "parent": "p_services",
+      "label": "TimeSeriesService",
+      "sublabel": "I vs t · bias stress"
+    },
+    {
+      "id": "p_io",
+      "parent": "p_core",
+      "label": "nanomol.io",
+      "sublabel": "persistencia y esquema",
+      "sources": [
+        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "datafile" }
+      ]
+    },
+    {
+      "id": "p_schema",
+      "parent": "p_io",
+      "label": "schema.py",
+      "sublabel": "nombres de dataset como constantes"
+    },
+    {
+      "id": "p_datafile",
+      "parent": "p_io",
+      "label": "datafile.py",
+      "sublabel": "h5py sin tkinter"
+    },
+    {
+      "id": "p_ui",
+      "parent": "p_core",
+      "label": "nanomol.ui",
+      "sublabel": "PyQt6 · un solo entry point",
+      "sources": [
+        { "path": "utils/interactive_ui.py", "line": 18, "end_line": 46, "label": "auto-enlace" }
+      ]
+    },
+    {
+      "id": "p_launcher",
+      "parent": "p_ui",
+      "label": "launcher.py",
+      "sublabel": "pantalla de inicio · QMainWindow"
+    },
+    {
+      "id": "p_windows",
+      "parent": "p_ui",
+      "label": "*.ui",
+      "sublabel": "18 ficheros junto a su clase"
+    },
+    {
+      "id": "p_session",
+      "parent": "p_core",
+      "label": "nanomol.session",
+      "sublabel": "registro y conexión perezosa"
+    },
+    {
+      "id": "p_packaging",
+      "parent": "p_core",
+      "label": "pyproject.toml + src/",
+      "sublabel": "pip install -e . · entry points"
+    },
+    {
+      "id": "p_tests",
+      "parent": "p_core",
+      "label": "tests/",
+      "sublabel": "FakeSMU · sin hardware"
+    },
+    {
+      "id": "p_gitlab",
+      "parent": "root",
+      "label": "PROPUESTA · git.csic.es/nanomol",
+      "sublabel": "ya existe el grupo · acceso de por vida"
+    },
+    {
+      "id": "p_toolkit",
+      "parent": "p_gitlab",
+      "label": "egofets-toolkit",
+      "sublabel": "análisis y reporting (ya interno)"
+    },
+    {
+      "id": "p_hdf5mgr",
+      "parent": "p_gitlab",
+      "label": "hdf5-manager",
+      "sublabel": "visor y editor HDF5 (a mover)"
+    },
+    {
+      "id": "p_release",
+      "parent": "p_gitlab",
+      "label": "nanomol-desktop",
+      "sublabel": "release .exe para el laboratorio"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Regla de reparto",
+      "items": [
+        "Todo lo que habla con un instrumento o escribe datos va al repositorio de instrumentación",
+        "Todo lo que lee datos y produce tablas o figuras va al repositorio de análisis",
+        "El esquema HDF5 es el contrato entre ambos y debe estar versionado y documentado"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Por qué separar services",
+      "items": [
+        "Hoy la lógica de medición vive dentro de clases QWidget: no se puede probar sin hardware",
+        "Extraer el dominio a services/ permite tests con un SMU falso y habilita una segunda GUI (web) sobre el mismo backend",
+        "El .exe y la app web serían dos frontends del mismo núcleo"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Decisiones que quedan abiertas",
+      "items": [
+        "¿PyQt6 desde el día uno, aprovechando la rama PyQt6-update ya existente?",
+        "¿El visor HDF5 se integra como dock del launcher o se queda en la app aparte?",
+        "¿Quién mantiene el repo de instrumentación una vez en el grupo?"
+      ]
+    }
+  ]
+}

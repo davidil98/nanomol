@@ -1,0 +1,284 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "nanomol — control de instrumentación para caracterización de FET",
+    "locale": "es",
+    "output": ".archify/architecture-nanomol-20261116-174000/nanomol-arquitectura-actual.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/davidil98/nanomol.git",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "827189b4a4ba6c4c542fb9775478bb0fc2f05aa8"
+    }
+  },
+  "components": [
+    {
+      "id": "investigador",
+      "type": "external",
+      "label": "Investigador",
+      "sublabel": "ICMAB · grupo Nanomol",
+      "pos": [30, 168],
+      "size": [150, 62],
+      "sources": [
+        { "path": "README.md", "line": 1, "end_line": 1, "label": "repositorio del grupo" }
+      ]
+    },
+    {
+      "id": "launchers",
+      "type": "frontend",
+      "label": "Puntos de entrada GUI",
+      "sublabel": "21 scripts con __main__",
+      "tag": "sin composition root",
+      "pos": [250, 130],
+      "size": [170, 76],
+      "sources": [
+        { "path": "experiments/experiment_launcher.py", "line": 15, "end_line": 28, "label": "lanza 4 ventanas" },
+        { "path": "experiments/current_vs_time.py", "line": 150, "end_line": 162, "label": "script autónomo" },
+        { "path": "instruments/keithley_2600_LED_driver.py", "line": 119, "end_line": 125, "label": "driver LED aislado" }
+      ]
+    },
+    {
+      "id": "instruments",
+      "type": "backend",
+      "label": "Drivers de equipo",
+      "sublabel": "Keithley · relés · óptica",
+      "pos": [500, 130],
+      "size": [170, 76],
+      "sources": [
+        { "path": "instruments/keithley_2600A.py", "line": 14, "end_line": 19, "label": "clase SMU" },
+        { "path": "instruments/visa_instrument.py", "line": 17, "end_line": 20, "label": "conexión VISA" },
+        { "path": "instruments/serial_instrument.py", "line": 16, "end_line": 27, "label": "conexión serie" }
+      ]
+    },
+    {
+      "id": "widgets",
+      "type": "frontend",
+      "label": "Widgets Qt Designer",
+      "sublabel": "18 .ui cargados en runtime",
+      "pos": [250, 280],
+      "size": [170, 76],
+      "sources": [
+        { "path": "experiments/transistor_transfer.py", "line": 34, "end_line": 35, "label": "uic.loadUi" },
+        { "path": "utils/interactive_ui.py", "line": 18, "end_line": 46, "label": "auto-enlace por nombre" }
+      ]
+    },
+    {
+      "id": "experiments",
+      "type": "backend",
+      "label": "Clases de medición",
+      "sublabel": "transfer · output · I vs t",
+      "tag": "dominio dentro del QWidget",
+      "pos": [500, 280],
+      "size": [170, 76],
+      "sources": [
+        { "path": "experiments/transistor_transfer.py", "line": 94, "end_line": 151, "label": "bucle de medición" },
+        { "path": "experiments/current_vs_time.py", "line": 54, "end_line": 85, "label": "medición temporal" },
+        { "path": "experiments/transistor_output_transfer.py", "line": 149, "end_line": 158, "label": "etiquetas de dataset" }
+      ]
+    },
+    {
+      "id": "keithley",
+      "type": "external",
+      "label": "Keithley 2600A",
+      "sublabel": "2 unidades GPIB",
+      "pos": [780, 40],
+      "size": [170, 76],
+      "sources": [
+        { "path": "experiments/experiment_launcher.py", "line": 16, "end_line": 16, "label": "GPIB0::27" },
+        { "path": "experiments/experiment_launcher_LED.py", "line": 17, "end_line": 18, "label": "GPIB0::26 LED" }
+      ]
+    },
+    {
+      "id": "arduino",
+      "type": "external",
+      "label": "Arduino + relés",
+      "sublabel": "obturadores · multiplexor",
+      "pos": [780, 130],
+      "size": [170, 76],
+      "sources": [
+        { "path": "instruments/arduino_shutter_controller.py", "line": 19, "end_line": 23, "label": "driver obturador" },
+        { "path": "instruments/arduino/arduino_multiplexer_3_to_12_12_1/arduino_multiplexer_3_to_12_12_1.ino", "line": 1, "end_line": 26, "label": "firmware" }
+      ]
+    },
+    {
+      "id": "optica",
+      "type": "external",
+      "label": "Instrumentación óptica",
+      "sublabel": "láser · plataformas",
+      "pos": [780, 280],
+      "size": [170, 76],
+      "sources": [
+        { "path": "instruments/thorlabs_MCLS1.py", "line": 221, "end_line": 227, "label": "láser COM8" },
+        { "path": "instruments/newport_CONEX_MFA_CC.py", "line": 203, "end_line": 210, "label": "etapa COM6/5" }
+      ]
+    },
+    {
+      "id": "hdf5",
+      "type": "database",
+      "label": "Fichero HDF5",
+      "sublabel": "curvas + attrs de settings",
+      "pos": [500, 440],
+      "size": [170, 76],
+      "sources": [
+        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "subclase de h5py.File" },
+        { "path": "experiments/transistor_transfer.py", "line": 190, "end_line": 201, "label": "attrs por barrido" }
+      ]
+    },
+    {
+      "id": "viewer",
+      "type": "frontend",
+      "label": "Visor HDF5",
+      "sublabel": "árbol + plot",
+      "pos": [190, 440],
+      "size": [170, 76],
+      "sources": [
+        { "path": "utils/hdf5_viewer.py", "line": 41, "end_line": 56, "label": "árbol de grupos" },
+        { "path": "utils/hdf5_viewer.py", "line": 128, "end_line": 149, "label": "representación" }
+      ]
+    },
+    {
+      "id": "analisis",
+      "type": "backend",
+      "label": "analysis/fitting.py",
+      "sublabel": "2 funciones, sin uso",
+      "tag": "código muerto",
+      "pos": [190, 570],
+      "size": [170, 76],
+      "sources": [
+        { "path": "analysis/fitting.py", "line": 14, "end_line": 70, "label": "ajuste lineal" },
+        { "path": "analysis/fitting.py", "line": 73, "end_line": 113, "label": "ajuste de ruido" }
+      ]
+    },
+    {
+      "id": "consumidores",
+      "type": "external",
+      "label": "Repos de análisis",
+      "sublabel": "egofets-toolkit · HDF5-Manager",
+      "pos": [780, 440],
+      "size": [170, 68],
+      "sources": [
+        { "path": "experiments/transistor_transfer.py", "line": 190, "end_line": 201, "label": "esquema que consumen" },
+        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "formato HDF5 común" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Repositorio nanomol (fork de uso personal)",
+      "wraps": ["launchers", "widgets", "experiments", "instruments"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    {
+      "id": "inv-a-launchers",
+      "from": "investigador",
+      "to": "launchers",
+      "label": "ejecuta"
+    },
+    {
+      "id": "launchers-instruments",
+      "from": "launchers",
+      "to": "instruments",
+      "label": "conecta"
+    },
+    {
+      "id": "launchers-widgets",
+      "from": "launchers",
+      "to": "widgets",
+      "label": "construye"
+    },
+    {
+      "id": "widgets-experiments",
+      "from": "widgets",
+      "to": "experiments",
+      "label": "contiene"
+    },
+    {
+      "id": "experiments-instruments",
+      "from": "experiments",
+      "to": "instruments",
+      "label": "mide con"
+    },
+    {
+      "id": "experiments-hdf5",
+      "from": "experiments",
+      "to": "hdf5",
+      "label": "escribe curvas y attrs"
+    },
+    {
+      "id": "instruments-keithley",
+      "from": "instruments",
+      "to": "keithley",
+      "label": "GPIB / USB",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "instruments-arduino",
+      "from": "instruments",
+      "to": "arduino",
+      "label": "puerto serie",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "experiments-optica",
+      "from": "experiments",
+      "to": "optica",
+      "label": "escaneo XY",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "dashed"
+    },
+    {
+      "id": "hdf5-viewer",
+      "from": "hdf5",
+      "to": "viewer",
+      "label": "abre y representa",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "hdf5-consumidores",
+      "from": "hdf5",
+      "to": "consumidores",
+      "label": "mismo HDF5",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Lo que hoy es el repositorio",
+      "items": [
+        "4 carpetas: instruments, experiments, utils, analysis",
+        "21 scripts con __main__, cada uno cablea sus propias direcciones de instrumento",
+        "Las clases de experiments heredan de QWidget: la lógica de medición vive dentro del widget",
+        "El .ui se carga en runtime con uic.loadUi y el nombre del widget es la clave que lo enlaza al código"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Fricción para un no desarrollador",
+      "items": [
+        "Sin installation step: se importa con PYTHONPATH y el prefijo nanomol. depende del nombre de la carpeta",
+        "Sin tests, sin CI, sin requirements fijados, sin licencia",
+        "Abrir el HDF5 exige Python + Spyder; los repos de análisis ya resuelven esto mejor"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "El activo que hay que preservar",
+      "items": [
+        "El esquema HDF5 con attrs de settings del Keithley: es el contrato con el análisis",
+        "Los drivers de Keithley 2600A: TSP, buffers y scripts lineales",
+        "El firmware Arduino de relés y obturadores"
+      ]
+    }
+  ]
+}

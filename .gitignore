@@ -1,1 +1,41 @@
-__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Datos de laboratorio: nunca versionar
+*.hdf5
+*.h5
+*.csv
+*.xlsx
+*.dat
+data/
+output/
+
+# Entornos de IDE / Spyder
+.spyderproject
+.spyderworkspace
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Credenciales
+.env
+*.ini.local
+secrets.*
+
+# Artefactos de archify: los HTML publicables están en docs/diagrams/
+.archify/
