@@ -7,7 +7,7 @@ Created on Fri Oct  9 16:12:12 2026
 
 import os
 import sys
-from PyQt5 import QtWidgets, uic
+from PyQt6 import QtWidgets, uic
 from nanomol.instruments.serial_instrument import serial_instrument
 from nanomol.utils.interactive_ui import interactive_ui
 
@@ -137,6 +137,6 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = arduino_multiplexer_3_to_12_12_1_ui(multiplexer)
     window.show()
-    app.exec_()
+    app.exec()
 
     multiplexer.close()

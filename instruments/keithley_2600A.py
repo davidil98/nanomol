@@ -8,7 +8,7 @@ Created on Wed Aug 16 14:47:39 2023
 import os
 import numpy as np
 import pyvisa
-from PyQt5 import QtWidgets, uic
+from PyQt6 import QtWidgets, uic
 from nanomol.instruments.visa_instrument import visa_instrument
 
 class keithley_2600A(visa_instrument):
@@ -235,10 +235,12 @@ class keithley_2600A(visa_instrument):
         script_name : str, optional
             Name assigned to script in instrument runtime environment. If script_name='' set as anonymous script.
         """
-        self.write('loadscript {}'.format(script_name))
-        for command in script:
-            self.write(command)
-        self.write('endscript')
+        # hold the lock for the whole script, so that commands from other threads do not end up inside it
+        with self.lock:
+            self.write('loadscript {}'.format(script_name))
+            for command in script:
+                self.write(command)
+            self.write('endscript')
         
     def run_script(self, script_name=None):
         """
@@ -431,10 +433,13 @@ class keithley_2600A_ui(QtWidgets.QWidget):
         Check which widget emitted the signal and update the corresponding keithley setting.
         If calling method directly pass calling_widget.
         """
-        sender = self.sender()
-        if sender is None:
-            # function called without user interaction, e.g. through update_all_settings
+        if isinstance(calling_widget, QtWidgets.QWidget):
+            # called directly, e.g. by update_all_settings. self.sender() cannot be used then: PyQt returns the
+            # sender of the signal that started the code running now, e.g. a timer of the experiment planner
             sender = calling_widget
+        else:
+            # called by a widget signal. calling_widget then holds the new value sent by the signal
+            sender = self.sender()
         if sender == self.V_source_range_a_comboBox:
             self.keithley.set_source_range('a', 'v', sender.currentText() )
         elif sender == self.V_source_limit_a_doubleSpinBox:

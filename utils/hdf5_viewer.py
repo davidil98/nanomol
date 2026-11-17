@@ -8,9 +8,9 @@ Created on Thu Jun 15 10:39:21 2023
 import numpy as np
 import os
 import h5py
+from PyQt6 import QtWidgets, uic
+from PyQt6.QtGui import QStandardItemModel, QStandardItem
 import pyqtgraph as pg
-from PyQt5 import QtWidgets, uic
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from nanomol.utils.interactive_ui import interactive_ui
 
 class hdf5_viewer(interactive_ui):
