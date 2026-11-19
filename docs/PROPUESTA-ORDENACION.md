@@ -4,8 +4,13 @@
 > el banco de pruebas: aquí se mide, se prueba y se demuestra; el repositorio canónico
 > sigue siendo `dean-nanomol/nanomol`.
 
-**Fecha:** 2026-11-16 · **Base:** revisión `827189b4` de `davidil98/nanomol`
-**Alcance:** fase 1 — auditoría de la estructura actual y propuesta de ordenación.
+**Fecha:** 2026-11-19 · **Base:** revisión `4536cc9` de `davidil98/nanomol`
+**Alcance:** fases 0 a 3 ejecutadas — auditoría, merge de las ramas de Dean,
+corrección del coste de las mediciones largas, entorno reproducible y menú de inicio.
+
+> **Estado:** el fork ya contiene la migración a PyQt6, el trabajo de estabilidad de
+> Dean, la corrección del coste cuadrático de las mediciones largas, un menú de inicio
+> y 31 tests. Este documento describe lo que se ha hecho y lo que queda.
 
 ---
 
@@ -21,15 +26,21 @@ Medido sobre el código:
 
 | Capa | Líneas | Naturaleza |
 |---|---:|---|
-| `instruments/` | 2.107 | Adaptadores de hardware (VISA, serie) |
-| `experiments/` | 2.119 | Procedimientos de medición sobre Keithley |
-| `utils/` | 462 | Persistencia HDF5, visor, base de widgets |
+| `experiments/` | 4.290 | Procedimientos de medición, secuenciador y menú de inicio |
+| `instruments/` | 2.199 | Adaptadores de hardware (VISA, serie) |
+| `utils/` | 911 | Persistencia HDF5, visor, base de widgets, sesión de instrumentos |
 | `analysis/` | 113 | Dos funciones de ajuste — **nadie las importa** |
+| `tests/` | 694 | 31 tests, sin hardware |
 | firmware `.ino` | 873 | Arduino: relés, obturadores, multiplexor |
 
 **El ~96 % del repositorio es adquisición.** El tratamiento de datos de verdad no está
 aquí: está en `egofets-toolkit` y `HDF5-Manager`, en repositorios separados, que ya
 reverse-engineeraron el formato HDF5 que este repo produce.
+
+Todo el repositorio está ahora en **PyQt6**, con las tres ramas de Dean mergeadas:
+la migración a PyQt6 (`5901d6e`), el trabajo de estabilidad escrito con Claude Code
+(`e7f29e9`, `525e0e0`, `fc843c3`, `7f5e829`) y el secuenciador de 1.436 líneas
+(`experiment_planner.py`).
 
 Tres hechos que explican la fricción actual:
 
@@ -185,27 +196,123 @@ Y una decisión de flujo que hay que tomar explícitamente:
 
 ---
 
+## 4bis. Lo que ya está hecho en el fork
+
+Tres cosas que se pueden enseñar con el código delante, no con capturas.
+
+### 4.1. El coste de las mediciones largas (corregido)
+
+El bucle de `current_vs_time` acumulaba los datos en listas de Python y entregaba
+todo el historial a pyqtgraph en cada actualización del plot. pyqtgraph convierte
+una lista en un array con `np.array()`, así que **cada actualización convertía el
+historial entero otra vez**: una iteración costaba más a medida que avanzaba la
+medición, y el coste total crecía de forma cuadrática.
+
+Medido en esta máquina, solo la conversión de las listas, sin lecturas de
+instrumento ni dibujo:
+
+| Puntos | Listas + `np.array()` | Buffer preasignado | Factor |
+|---:|---:|---:|---:|
+| 2.000 | 0,125 s | 0,0031 s | 41× |
+| 5.000 | 0,795 s | 0,0078 s | 102× |
+| 10.000 | 3,113 s | 0,0159 s | 196× |
+| 20.000 | 12,251 s | 0,0316 s | 388× |
+| 50.000 | 77,595 s | 0,0790 s | 982× |
+
+**El factor se duplica cada vez que se duplica el número de puntos**: esa es la
+firma matemática del comportamiento cuadrático. Extrapolado a una hora de
+medición a 100 Hz, las conversiones solas se llevarían el 88 % del tiempo.
+
+El síntoma era el que describía un compañero del laboratorio: *la lectura tardaba
+un poco más cada vez y el desfase se acumulaba*. Nada parecía estar mal, la
+aplicación funcionaba, pero cada vez iba más lenta.
+
+La corrección:
+- `utils/growable_buffer.py`: arrays de numpy que crecen de forma geométrica. Añadir
+  un punto es de coste constante amortizado, y entregar los datos a pyqtgraph no
+  copia nada.
+- La marca de tiempo se toma **antes** de las lecturas, para que se refiera al
+  momento en que se pidió el valor, y sale de un reloj **monótono**, al que no le
+  afecta un ajuste de reloj del sistema durante una medición larga.
+- Los plots **reducen los puntos automáticamente** para el dibujo.
+
+**El HDF5 no cambia**: los mismos datasets, con los mismos nombres y los mismos
+valores. El benchmark está en `tests/benchmark_timing.py`.
+
+### 4.2. El menú de inicio
+
+`experiments/start_menu.py` y `experiments/start_menu.ui` son la ventana que abre
+un compañero del laboratorio. Muestra qué equipos están disponibles y abre la
+herramienta que hace falta, **sin necesidad de tener el Keithley conectado** para
+probar la interfaz.
+
+Los tres flujos de trabajo:
+
+| Modo | Para quién | Qué hace |
+|---|---|---|
+| Script individual | El developer | Abre la herramienta directamente, como los `__main__` de siempre |
+| Guía de medición | El compañero del lab | Abre la herramienta desde un cuestionario corto |
+| Por lotes | Campañas de caracterización | El secuenciador (`experiment_planner.py`) encadena mediciones |
+
+La interfaz está diseñada en **Qt Designer** y se carga en runtime con
+`uic.loadUi()`, siguiendo las convenciones del repositorio: los widgets se
+acceden por su `objectName`, así que el nombre del widget en el `.ui` es el
+mismo que se usa en el `.py`.
+
+### 4.3. La sesión de instrumentos
+
+`utils/lab_session.py` tiene las direcciones de los equipos en **un solo sitio**, y
+conecta de forma perezosa: pedir un instrumento que no está devuelve `None` en vez
+de lanzar una excepción, de modo que una ventana se puede abrir con las
+herramientas que haya disponibles.
+
+El commit `d3aad78` de Dean, del 16 de noviembre, es la mejor prueba de por qué
+esto hace falta:
+
+```diff
+-smu = keithley_2600A('GPIB0::27::INSTR')
++smu = keithley_2600A('USB0::0x05E6::0x2612::4651966::INSTR')
+-multiplexer = arduino_multiplexer_3_to_12_12_1('COM10')
++multiplexer = arduino_multiplexer_3_to_12_12_1('COM4')
+```
+
+Dos líneas, porque el banco de medición se reconfiguró. Con la sesión, eso es un
+cambio en un fichero de configuración, no en el código.
+
+### 4.4. Entorno reproducible y tests
+
+- `environment.yml` (conda) y `pyproject.toml` (para `pip install -e .`).
+- **31 tests** que corren sin hardware:
+  - `tests/test_growable_buffer.py` — el buffer.
+  - `tests/test_current_vs_time.py` — el bucle de medición con un **Keithley falso**.
+  - `tests/test_ui_widget_names.py` — **los nombres de los widgets de los `.ui`
+    frente a los `.py` que los usan**. Con esto, un widget renombrado en Designer
+    falla el test en vez de reventar la aplicación en el banco.
+
+---
+
 ## 5. Plan por fases
 
 Cada fase es un PR independiente sobre el fork, mergeable y demostrable por separado.
 
-| # | Rama | Contenido | Riesgo |
-|---|---|---|---|
-| **0** | `chore/groundwork` | `.gitignore` real, `LICENSE`, `requirements.txt`/`environment.yml`, README reescrito por capas ("si soy EGOFET" / "si hago fotónica"), `CODEOWNERS` | **cero** |
-| **1** | `fix/hygiene` | Mover/archivar lo muerto: `transistor_transfer_laser_ON_OFF.py` (roto), `transistor_output.py` (huérfano), `tenma_72_2705.py` (sin uso), `relay_interfQT.py` (PySide6 + `sys.exit()` a nivel de módulo); arreglar `fitting.py` (`'sinudoid'` vs `'sinusoid'`, `params` vs `params[0]`); renombrar `throlabs_MCSL1.ui`; unificar los dos multiplexores; mover `analysis/` | bajo |
-| **2** | `chore/safety` | Merge de `experiment-planner` (trae `try/finally`, lock de VISA, plots cross-thread). **Base obligatoria del resto** | medio |
-| **3** | `refactor/led` | Unificar LED / no-LED con colaborador opcional (ver §6) | medio |
-| **4** | `refactor/src-layout` | `pyproject.toml` + `src/nanomol/` + entry points. **Desbloquea el `.exe`** | medio, diff grande pero mecánico |
-| **5** | `refactor/services` | Extraer el dominio a `services/`, sin PyQt. Empezar por `transistor_transfer` | medio |
-| **6** | `docs/schema` | `io/schema.py` + `docs/data_format.md` + tests pytest (round-trip HDF5, parseo del nombre de measurement) | bajo |
-| **7** | `feat/launcher` | `LabSession` + pantalla de inicio (QMainWindow + docks) | medio |
-| **8** | `feat/dist` | `pyinstaller.spec`, `.exe`, GitHub Releases en el fork | bajo |
-| **9** | `chore/migrate` | Migración a `git.csic.es/nanomol/`, alta de miembros, política de releases | organizativo |
+| # | Rama | Contenido | Riesgo | Estado |
+|---|---|---|---|---|
+| **0** | `chore/groundwork` | `.gitignore` real, `LICENSE`, `requirements.txt`/`environment.yml`, README reescrito por capas, `CODEOWNERS` | **cero** | parcial: falta `LICENSE` y `CODEOWNERS` |
+| **1** | `fix/hygiene` | Mover/archivar lo muerto: `transistor_transfer_laser_ON_OFF.py` (roto), `tenma_72_2705.py` (sin uso), `relay_interfQT.py` (PySide6 + `sys.exit()` a nivel de módulo); arreglar `fitting.py`; renombrar `throlabs_MCSL1.ui`; unificar los dos multiplexores; mover `analysis/` | bajo | **pendiente** |
+| **2** | `chore/safety` | Merge de `experiment-planner` (trae `try/finally`, lock de VISA, plots cross-thread) | medio | **hecho** (`383a041`, `9d7650f`) |
+| **2b** | `fix/timing` | Buffer preasignado, reloj monótono, timestamp antes de la lectura, downsampling | bajo | **hecho** (`4536cc9`) |
+| **3** | `refactor/led` | Unificar LED / no-LED con colaborador opcional (ver §6) | medio | **pendiente** |
+| **4** | `refactor/src-layout` | `src/nanomol/` + entry points. **Desbloquea el `.exe`** | medio, diff grande pero mecánico | parcial: `pyproject.toml` listo, falta mover a `src/` |
+| **5** | `refactor/services` | Extraer el dominio a `services/`, sin PyQt. Empezar por `transistor_transfer` | medio | **pendiente** |
+| **6** | `docs/schema` | `io/schema.py` + `docs/data_format.md` + tests | bajo | parcial: el documento existe, falta el módulo |
+| **7** | `feat/launcher` | Menú de inicio + `LabSession` | medio | **hecho** (`4536cc9`) |
+| **8** | `feat/dist` | `pyinstaller.spec`, `.exe`, releases | bajo | **pendiente** |
+| **9** | `chore/migrate` | Migración a `git.csic.es/nanomol/`, alta de miembros, política de releases | organizativo | **pendiente** |
 
 **El orden tiene una razón:** 2 antes de 3 y 5, porque la rama del planner arregla el
 `try/finally` y el lock, y refactorizar sobre `main` reintroduce los bugs. 4 antes de 5
 porque `services/` solo es testeable si el paquete es importable de forma estándar. 5
-antes de 7 porque el launcher debe consumir `services/`, no lógica duplicada.
+antes de 8 porque el `.exe` debe consumir `services/`, no lógica duplicada.
 
 ---
 
@@ -301,10 +408,17 @@ class transistor_output_transfer(interactive_ui):
 2. **La tabla de duplicados y de bugs** (§1) — el `.ui` LED que perdió un botón, las
    tres convenciones de nombres, el `shut down` que mata a la otra ventana.
 3. **El árbol de módulos** (§2) — el destino de cada pieza.
-4. **La fase 0 primero** — un PR de higiene que se mergea en 5 minutos y demuestra que
-   esto va en serio.
-5. **Una pregunta concreta, no una propuesta cerrada**: *¿te parece que el repo pase a
-   `git.csic.es/nanomol/` con el grupo de gente, y que yo siga las fases 1–3 en el fork?*
+4. **Los parches, con números** (§4bis) — el benchmark del coste cuadrático es
+   verificable en cinco minutos, y el `try/finally` y el lock de VISA ya están
+   mergeados. Decir *"esto ya está hecho"* es mucho más fuerte que *"esto convendría"*.
+5. **El menú de inicio, en funcionamiento** (§4.2) — la tangible: un compañero del
+   laboratorio abre una ventana y ve qué hay conectado.
+6. **La migración, con el argumento del `port updates`** (§4.3) — Dean tuvo que tocar
+   dos líneas porque cambió el banco de medición. Con la sesión, es un fichero de
+   configuración.
+7. **Una pregunta concreta, no una propuesta cerrada**: *¿te parece que el repo pase a
+   `git.csic.es/nanomol/` con el grupo de gente, y que yo siga las fases 1, 3, 4 y 5 en
+   el fork?*
 
 ---
 

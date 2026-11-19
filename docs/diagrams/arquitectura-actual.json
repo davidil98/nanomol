@@ -10,7 +10,7 @@
       "url": "https://github.com/davidil98/nanomol.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "827189b4a4ba6c4c542fb9775478bb0fc2f05aa8"
+      "revision": "4536cc91bb9b166127866ab231778c5b5080d9ba"
     }
   },
   "components": [
@@ -19,24 +19,56 @@
       "type": "external",
       "label": "Investigador",
       "sublabel": "ICMAB · grupo Nanomol",
-      "pos": [30, 168],
-      "size": [150, 62],
+      "pos": [
+        30,
+        168
+      ],
+      "size": [
+        150,
+        62
+      ],
       "sources": [
-        { "path": "README.md", "line": 1, "end_line": 1, "label": "repositorio del grupo" }
+        {
+          "path": "README.md",
+          "line": 1,
+          "end_line": 1,
+          "label": "repositorio del grupo"
+        }
       ]
     },
     {
       "id": "launchers",
       "type": "frontend",
-      "label": "Puntos de entrada GUI",
-      "sublabel": "21 scripts con __main__",
+      "label": "Puntos de entrada",
+      "sublabel": "start_menu · 21 scripts",
       "tag": "sin composition root",
-      "pos": [250, 130],
-      "size": [170, 76],
+      "pos": [
+        250,
+        130
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "experiments/experiment_launcher.py", "line": 15, "end_line": 28, "label": "lanza 4 ventanas" },
-        { "path": "experiments/current_vs_time.py", "line": 150, "end_line": 162, "label": "script autónomo" },
-        { "path": "instruments/keithley_2600_LED_driver.py", "line": 119, "end_line": 125, "label": "driver LED aislado" }
+        {
+          "path": "experiments/start_menu.py",
+          "line": 44,
+          "end_line": 60,
+          "label": "menú de inicio"
+        },
+        {
+          "path": "experiments/experiment_launcher.py",
+          "line": 15,
+          "end_line": 28,
+          "label": "lanza 4 ventanas"
+        },
+        {
+          "path": "experiments/current_vs_time.py",
+          "line": 206,
+          "end_line": 218,
+          "label": "script autónomo"
+        }
       ]
     },
     {
@@ -44,24 +76,89 @@
       "type": "backend",
       "label": "Drivers de equipo",
       "sublabel": "Keithley · relés · óptica",
-      "pos": [500, 130],
-      "size": [170, 76],
+      "pos": [
+        500,
+        130
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "instruments/keithley_2600A.py", "line": 14, "end_line": 19, "label": "clase SMU" },
-        { "path": "instruments/visa_instrument.py", "line": 17, "end_line": 20, "label": "conexión VISA" },
-        { "path": "instruments/serial_instrument.py", "line": 16, "end_line": 27, "label": "conexión serie" }
+        {
+          "path": "instruments/keithley_2600A.py",
+          "line": 14,
+          "end_line": 19,
+          "label": "clase SMU"
+        },
+        {
+          "path": "instruments/visa_instrument.py",
+          "line": 27,
+          "end_line": 42,
+          "label": "conexión VISA con lock"
+        },
+        {
+          "path": "instruments/serial_instrument.py",
+          "line": 16,
+          "end_line": 27,
+          "label": "conexión serie"
+        }
+      ]
+    },
+    {
+      "id": "session",
+      "type": "backend",
+      "label": "LabSession",
+      "sublabel": "conexión perezosa",
+      "pos": [
+        500,
+        280
+      ],
+      "size": [
+        170,
+        76
+      ],
+      "sources": [
+        {
+          "path": "utils/lab_session.py",
+          "line": 176,
+          "end_line": 195,
+          "label": "apertura perezosa"
+        },
+        {
+          "path": "utils/lab_session.py",
+          "line": 235,
+          "end_line": 252,
+          "label": "estado sin excepciones"
+        }
       ]
     },
     {
       "id": "widgets",
       "type": "frontend",
       "label": "Widgets Qt Designer",
-      "sublabel": "18 .ui cargados en runtime",
-      "pos": [250, 280],
-      "size": [170, 76],
+      "sublabel": "18 .ui en runtime",
+      "pos": [
+        250,
+        280
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "experiments/transistor_transfer.py", "line": 34, "end_line": 35, "label": "uic.loadUi" },
-        { "path": "utils/interactive_ui.py", "line": 18, "end_line": 46, "label": "auto-enlace por nombre" }
+        {
+          "path": "experiments/transistor_transfer.py",
+          "line": 34,
+          "end_line": 35,
+          "label": "uic.loadUi"
+        },
+        {
+          "path": "utils/interactive_ui.py",
+          "line": 18,
+          "end_line": 46,
+          "label": "auto-enlace por nombre"
+        }
       ]
     },
     {
@@ -70,24 +167,77 @@
       "label": "Clases de medición",
       "sublabel": "transfer · output · I vs t",
       "tag": "dominio dentro del QWidget",
-      "pos": [500, 280],
-      "size": [170, 76],
+      "pos": [
+        250,
+        430
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "experiments/transistor_transfer.py", "line": 94, "end_line": 151, "label": "bucle de medición" },
-        { "path": "experiments/current_vs_time.py", "line": 54, "end_line": 85, "label": "medición temporal" },
-        { "path": "experiments/transistor_output_transfer.py", "line": 149, "end_line": 158, "label": "etiquetas de dataset" }
+        {
+          "path": "experiments/transistor_transfer.py",
+          "line": 94,
+          "end_line": 151,
+          "label": "bucle de medición"
+        },
+        {
+          "path": "experiments/current_vs_time.py",
+          "line": 76,
+          "end_line": 116,
+          "label": "bucle con try/finally"
+        }
+      ]
+    },
+    {
+      "id": "planner",
+      "type": "frontend",
+      "label": "Secuenciador",
+      "sublabel": "planos de N mediciones",
+      "pos": [
+        500,
+        430
+      ],
+      "size": [
+        170,
+        76
+      ],
+      "sources": [
+        {
+          "path": "experiments/experiment_planner.py",
+          "line": 746,
+          "end_line": 758,
+          "label": "planificador"
+        }
       ]
     },
     {
       "id": "keithley",
       "type": "external",
       "label": "Keithley 2600A",
-      "sublabel": "2 unidades GPIB",
-      "pos": [780, 40],
-      "size": [170, 76],
+      "sublabel": "2 unidades GPIB/USB",
+      "pos": [
+        800,
+        60
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "experiments/experiment_launcher.py", "line": 16, "end_line": 16, "label": "GPIB0::27" },
-        { "path": "experiments/experiment_launcher_LED.py", "line": 17, "end_line": 18, "label": "GPIB0::26 LED" }
+        {
+          "path": "experiments/experiment_launcher.py",
+          "line": 16,
+          "end_line": 16,
+          "label": "GPIB0::27"
+        },
+        {
+          "path": "experiments/experiment_launcher_LED.py",
+          "line": 17,
+          "end_line": 18,
+          "label": "GPIB0::26 LED"
+        }
       ]
     },
     {
@@ -95,11 +245,27 @@
       "type": "external",
       "label": "Arduino + relés",
       "sublabel": "obturadores · multiplexor",
-      "pos": [780, 130],
-      "size": [170, 76],
+      "pos": [
+        800,
+        150
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "instruments/arduino_shutter_controller.py", "line": 19, "end_line": 23, "label": "driver obturador" },
-        { "path": "instruments/arduino/arduino_multiplexer_3_to_12_12_1/arduino_multiplexer_3_to_12_12_1.ino", "line": 1, "end_line": 26, "label": "firmware" }
+        {
+          "path": "instruments/arduino_shutter_controller.py",
+          "line": 19,
+          "end_line": 23,
+          "label": "driver obturador"
+        },
+        {
+          "path": "instruments/arduino/arduino_multiplexer_3_to_12_12_1/arduino_multiplexer_3_to_12_12_1.ino",
+          "line": 1,
+          "end_line": 26,
+          "label": "firmware"
+        }
       ]
     },
     {
@@ -107,11 +273,27 @@
       "type": "external",
       "label": "Instrumentación óptica",
       "sublabel": "láser · plataformas",
-      "pos": [780, 280],
-      "size": [170, 76],
+      "pos": [
+        800,
+        240
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "instruments/thorlabs_MCLS1.py", "line": 221, "end_line": 227, "label": "láser COM8" },
-        { "path": "instruments/newport_CONEX_MFA_CC.py", "line": 203, "end_line": 210, "label": "etapa COM6/5" }
+        {
+          "path": "instruments/thorlabs_MCLS1.py",
+          "line": 221,
+          "end_line": 227,
+          "label": "láser COM8"
+        },
+        {
+          "path": "instruments/newport_CONEX_MFA_CC.py",
+          "line": 203,
+          "end_line": 210,
+          "label": "etapa COM6/5"
+        }
       ]
     },
     {
@@ -119,11 +301,27 @@
       "type": "database",
       "label": "Fichero HDF5",
       "sublabel": "curvas + attrs de settings",
-      "pos": [500, 440],
-      "size": [170, 76],
+      "pos": [
+        500,
+        580
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "subclase de h5py.File" },
-        { "path": "experiments/transistor_transfer.py", "line": 190, "end_line": 201, "label": "attrs por barrido" }
+        {
+          "path": "utils/hdf5_datafile.py",
+          "line": 14,
+          "end_line": 37,
+          "label": "subclase de h5py.File"
+        },
+        {
+          "path": "experiments/transistor_transfer.py",
+          "line": 190,
+          "end_line": 201,
+          "label": "attrs por barrido"
+        }
       ]
     },
     {
@@ -131,24 +329,55 @@
       "type": "frontend",
       "label": "Visor HDF5",
       "sublabel": "árbol + plot",
-      "pos": [190, 440],
-      "size": [170, 76],
+      "pos": [
+        800,
+        580
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "utils/hdf5_viewer.py", "line": 41, "end_line": 56, "label": "árbol de grupos" },
-        { "path": "utils/hdf5_viewer.py", "line": 128, "end_line": 149, "label": "representación" }
+        {
+          "path": "utils/hdf5_viewer.py",
+          "line": 41,
+          "end_line": 56,
+          "label": "árbol de grupos"
+        },
+        {
+          "path": "utils/hdf5_viewer.py",
+          "line": 128,
+          "end_line": 149,
+          "label": "representación"
+        }
       ]
     },
     {
-      "id": "analisis",
+      "id": "tests",
       "type": "backend",
-      "label": "analysis/fitting.py",
-      "sublabel": "2 funciones, sin uso",
-      "tag": "código muerto",
-      "pos": [190, 570],
-      "size": [170, 76],
+      "label": "Tests",
+      "sublabel": "31 tests · FakeSMU",
+      "pos": [
+        250,
+        700
+      ],
+      "size": [
+        170,
+        76
+      ],
       "sources": [
-        { "path": "analysis/fitting.py", "line": 14, "end_line": 70, "label": "ajuste lineal" },
-        { "path": "analysis/fitting.py", "line": 73, "end_line": 113, "label": "ajuste de ruido" }
+        {
+          "path": "tests/test_current_vs_time.py",
+          "line": 33,
+          "end_line": 70,
+          "label": "SMU falso"
+        },
+        {
+          "path": "tests/test_ui_widget_names.py",
+          "line": 176,
+          "end_line": 219,
+          "label": "nombres .ui vs .py"
+        }
       ]
     },
     {
@@ -156,11 +385,27 @@
       "type": "external",
       "label": "Repos de análisis",
       "sublabel": "egofets-toolkit · HDF5-Manager",
-      "pos": [780, 440],
-      "size": [170, 68],
+      "pos": [
+        250,
+        580
+      ],
+      "size": [
+        170,
+        68
+      ],
       "sources": [
-        { "path": "experiments/transistor_transfer.py", "line": 190, "end_line": 201, "label": "esquema que consumen" },
-        { "path": "utils/hdf5_datafile.py", "line": 14, "end_line": 37, "label": "formato HDF5 común" }
+        {
+          "path": "experiments/transistor_transfer.py",
+          "line": 190,
+          "end_line": 201,
+          "label": "esquema que consumen"
+        },
+        {
+          "path": "utils/hdf5_datafile.py",
+          "line": 14,
+          "end_line": 37,
+          "label": "formato HDF5 común"
+        }
       ]
     }
   ],
@@ -168,7 +413,14 @@
     {
       "kind": "region",
       "label": "Repositorio nanomol (fork de uso personal)",
-      "wraps": ["launchers", "widgets", "experiments", "instruments"],
+      "wraps": [
+        "launchers",
+        "widgets",
+        "experiments",
+        "instruments",
+        "session",
+        "planner"
+      ],
       "pad": 18
     }
   ],
@@ -186,6 +438,12 @@
       "label": "conecta"
     },
     {
+      "id": "launchers-session",
+      "from": "launchers",
+      "to": "session",
+      "label": "pregunta el estado"
+    },
+    {
       "id": "launchers-widgets",
       "from": "launchers",
       "to": "widgets",
@@ -198,10 +456,22 @@
       "label": "contiene"
     },
     {
+      "id": "session-instruments",
+      "from": "session",
+      "to": "instruments",
+      "label": "abre bajo demanda"
+    },
+    {
       "id": "experiments-instruments",
       "from": "experiments",
       "to": "instruments",
       "label": "mide con"
+    },
+    {
+      "id": "planner-experiments",
+      "from": "experiments",
+      "to": "planner",
+      "label": "encadena"
     },
     {
       "id": "experiments-hdf5",
@@ -230,8 +500,6 @@
       "from": "experiments",
       "to": "optica",
       "label": "escaneo XY",
-      "fromSide": "right",
-      "toSide": "left",
       "variant": "dashed"
     },
     {
@@ -249,35 +517,44 @@
       "label": "mismo HDF5",
       "fromSide": "right",
       "toSide": "left"
+    },
+    {
+      "id": "tests-experiments",
+      "from": "tests",
+      "to": "experiments",
+      "label": "verifica",
+      "variant": "dashed"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Lo que hoy es el repositorio",
+      "title": "Lo que el repositorio es hoy",
       "items": [
-        "4 carpetas: instruments, experiments, utils, analysis",
-        "21 scripts con __main__, cada uno cablea sus propias direcciones de instrumento",
-        "Las clases de experiments heredan de QWidget: la lógica de medición vive dentro del widget",
-        "El .ui se carga en runtime con uic.loadUi y el nombre del widget es la clave que lo enlaza al código"
-      ]
-    },
-    {
-      "dot": "rose",
-      "title": "Fricción para un no desarrollador",
-      "items": [
-        "Sin installation step: se importa con PYTHONPATH y el prefijo nanomol. depende del nombre de la carpeta",
-        "Sin tests, sin CI, sin requirements fijados, sin licencia",
-        "Abrir el HDF5 exige Python + Spyder; los repos de análisis ya resuelven esto mejor"
+        "Adquisición pura: mide, escribe HDF5 y no interpreta los datos",
+        "PyQt6 en todo el repo, con las ramas de Dean ya mergeadas",
+        "El menú de inicio y el secuenciador ofrecen tres flujos de trabajo",
+        "El HDF5 es el contrato con los repos de análisis"
       ]
     },
     {
       "dot": "emerald",
-      "title": "El activo que hay que preservar",
+      "title": "Lo que ya está resuelto",
       "items": [
-        "El esquema HDF5 con attrs de settings del Keithley: es el contrato con el análisis",
-        "Los drivers de Keithley 2600A: TSP, buffers y scripts lineales",
-        "El firmware Arduino de relés y obturadores"
+        "try/finally en todos los bucles: el SMU se apaga siempre, también tras un error",
+        "Lock en visa_instrument: dos hilos no se pisan las respuestas",
+        "Plots solo desde el hilo principal, mediante señales",
+        "31 tests: SMU falso, nombres de los .ui y bucle de medición"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Lo que queda",
+      "items": [
+        "El dominio sigue dentro de las clases QWidget: no se puede reutilizar sin Qt",
+        "Las direcciones de instrumento están en el código, en 21 scripts",
+        "Sin empaquetar: los compañeros del lab necesitan Python y Spyder",
+        "El repo sigue en una cuenta personal de GitHub"
       ]
     }
   ]

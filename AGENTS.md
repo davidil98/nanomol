@@ -20,11 +20,12 @@ Contexto completo y plan de trabajo: [`docs/PROPUESTA-ORDENACION.md`](docs/PROPU
 | Ruta | Contenido |
 |---|---|
 | `instruments/` | Adaptadores de hardware. `visa_instrument.py` y `serial_instrument.py` son las bases. |
-| `experiments/` | Procedimientos de medición. Hoy heredan de `QWidget`. |
-| `utils/` | `hdf5_datafile.py` (subclase de `h5py.File`), `hdf5_viewer.py`, `interactive_ui.py`. |
+| `experiments/` | Procedimientos de medición, el secuenciador y el menú de inicio. Hoy heredan de `QWidget`. |
+| `utils/` | `hdf5_datafile.py`, `hdf5_viewer.py`, `interactive_ui.py`, `lab_session.py`, `growable_buffer.py`. |
 | `analysis/` | Helpers de ajuste. Huérfanos: nadie los importa. |
 | `instruments/arduino/` | Firmware `.ino`. Se despliega en las placas, no se importa. |
-| `docs/` | Propuesta de ordenación. |
+| `tests/` | 31 tests, sin hardware. |
+| `docs/` | Propuesta de ordenación y formato de datos. |
 | `.archify/` | Artefactos de diagrama (HTML autocontenido). |
 
 ## Reglas del dominio
@@ -44,7 +45,20 @@ repositorios externos (`egofets-toolkit`, `HDF5-Manager`).
 
 **El hardware no es simulable por suposición.** Para tests, usa un doble
 (`FakeSMU`) que implemente la interfaz de `keithley_2600A`. Nunca hables con un
-instrumento real durante un test.
+instrumento real durante un test. Ya hay uno en `tests/test_current_vs_time.py`.
+
+**Los datos de una medición se acumulan en `growable_buffer`, no en listas.**
+`utils/growable_buffer.py` mantiene arrays de numpy que crecen de forma geométrica.
+Con listas de Python, pyqtgraph convierte el historial entero en un array en cada
+actualización del plot, y el coste de la medición crece de forma cuadrática: medido
+en esta máquina, 50.000 puntos costaban 77,6 s solo en conversiones, frente a
+0,079 s con el buffer. Si añades un `self.data['x'].append(...)`, estás
+reintroduciendo el bug. Añade el dataset a `growable_buffer` y usa
+`self.data.append('x', valor)`.
+
+**El timestamp de una medición se toma antes de la lectura**, y de un reloj
+monótono (`time.monotonic()`), no de `time.time()`: un ajuste de reloj del sistema
+durante una medición larga no debe desplazar las marcas de tiempo.
 
 **La instrumentación se comparte, no se duplica.** En `main`, `experiment_launcher.py`
 comparte un único `smu` y un único `datafile` entre varias ventanas. Por eso:
@@ -95,6 +109,11 @@ editan en el mismo sitio.
 (namespace package PEP 420, sin `__init__.py`). Esto es frágil y se arregla en la fase
 `refactor/src-layout`; hasta entonces, no lo rompas.
 
+**El repositorio está en PyQt6.** `from PyQt6 import QtWidgets`, `app.exec()` (no
+`exec_()`, que no existe en PyQt6) y las acciones de Qt viven en `QtGui`, no en
+`QtWidgets`. Si añades `import pyqtgraph`, va **después** de PyQt6: pyqtgraph se
+liga al binding de Qt que se importó el primero.
+
 **Comentarios y docstrings en inglés**, siguiendo lo que ya hay. Comentarios que
 expliquen *por qué*, no *qué*.
 
@@ -108,21 +127,28 @@ expliquen *por qué*, no *qué*.
    mismo PR.
 5. Si añades un driver de instrumento, hereda de `visa_instrument` o `serial_instrument`
    y no abras el puerto en el `__init__` de la clase de UI.
+6. `pytest tests/ -q` tiene que pasar. El test de los nombres de los widgets
+   (`tests/test_ui_widget_names.py`) falla si renuncias un widget en el Designer sin
+   actualizar el `.py`: eso es exactamente lo que queremos.
 
-## Errores conocidos en `main`
+## Errores conocidos
 
-No los reintroduzcas. La rama `experiment-planner` (sin mergear) corrige varios.
+No los reintroduzcas. Los que ya están corregidos son los que traía la rama
+`experiment-planner` de Dean, mergeada en `383a041` y `9d7650f`, más la corrección
+del coste cuadrático de `4536cc9`.
 
-| Error | Dónde |
-|---|---|
-| `shutdown()` cierra `smu`/`datafile` compartidos | `experiments/current_vs_time.py`, `experiments/transistor_output_transfer.py` |
-| Sin `try/finally` en el bucle de medición | `experiments/transistor_transfer.py` |
-| Llamada VISA cruzada entre hilos | `experiments/current_vs_time_LED.py` |
-| `'sinudoid'` vs `'sinusoid'` | `analysis/fitting.py` |
-| `a = params` en vez de `params[0]` | `analysis/fitting.py` |
-| `sys.exit()` a nivel de módulo | `utils/relay_interfQT.py` |
-| `.ui` con nombre mal escrito | `thorlabs_MCLS1.py` → `throlabs_MCSL1.ui` |
-| `configure_XY_grid()` y `self.MCLS1` inexistentes | `experiments/transistor_transfer_laser_ON_OFF.py` |
+| Error | Dónde | Estado |
+|---|---|---|
+| `shutdown()` cierra `smu`/`datafile` compartidos | `experiments/current_vs_time.py`, `experiments/transistor_output_transfer.py` | pendiente |
+| Sin `try/finally` en el bucle de medición | `experiments/transistor_transfer.py` | **corregido** |
+| Llamada VISA cruzada entre hilos | `experiments/current_vs_time_LED.py` | **corregido** (lock en `visa_instrument`) |
+| Plots modificados desde el hilo de medición | `experiments/transistor_output_transfer.py` | **corregido** (señales) |
+| Coste cuadrático en las mediciones largas | `experiments/current_vs_time.py` | **corregido** (`growable_buffer`) |
+| `'sinudoid'` vs `'sinusoid'` | `analysis/fitting.py` | pendiente |
+| `a = params` en vez de `params[0]` | `analysis/fitting.py` | pendiente |
+| `sys.exit()` a nivel de módulo | `utils/relay_interfQT.py` | pendiente |
+| `.ui` con nombre mal escrito | `thorlabs_MCLS1.py` → `throlabs_MCSL1.ui` | pendiente |
+| `configure_XY_grid()` y `self.MCLS1` inexistentes | `experiments/transistor_transfer_laser_ON_OFF.py` | pendiente (fichero roto, excluido del test) |
 
 ## Fuera de alcance
 

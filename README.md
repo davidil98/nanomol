@@ -18,10 +18,11 @@ de datos HDF5 común para el análisis posterior.
 | Carpeta | Contenido |
 |---|---|
 | `instruments/` | Adaptadores de hardware. Bases: `visa_instrument.py` (Keithley) y `serial_instrument.py` (Arduino, láser, etapas). |
-| `experiments/` | Procedimientos de medición: transfer, output, I vs tiempo, y sus variantes con LED. |
-| `utils/` | `hdf5_datafile.py` (subclase de `h5py.File`), `hdf5_viewer.py` (visor con árbol y plots), `interactive_ui.py` (auto-enlace de widgets). |
+| `experiments/` | Procedimientos de medición: transfer, output, I vs tiempo, sus variantes con LED, el secuenciador y el menú de inicio. |
+| `utils/` | `hdf5_datafile.py` (subclase de `h5py.File`), `hdf5_viewer.py` (visor con árbol y plots), `interactive_ui.py` (auto-enlace de widgets), `lab_session.py` (direcciones y conexión perezosa), `growable_buffer.py`. |
 | `analysis/` | Helpers de ajuste de curvas. |
 | `instruments/arduino/` | Firmware (`.ino`) para relés, obturadores y multiplexor. |
+| `tests/` | 31 tests, que corren sin hardware. |
 | `docs/` | Propuesta de ordenación y formato de datos. |
 
 ## Instalación
@@ -37,9 +38,27 @@ pip install -r requirements.txt
 sin él, `pyvisa-py` sirve para USB pero no habla GPIB. El Keithley de caracterización
 está en GPIB, así que el runtime es obligatorio en ese puesto.
 
+### Con conda (recomendado)
+
+```bash
+conda env create -f environment.yml
+conda activate nanomol
+```
+
+Trae PyQt6, pyqtgraph, numpy, scipy, h5py, pyvisa y pyserial, con las versiones
+verificadas. Es la forma recomendada porque conda trae los binarios de `h5py` y
+`scipy`, que con `pip` hay que compilar.
+
 ## Dos formas de trabajar
 
 ### Si vienes del laboratorio y solo quieres medir
+
+**La puerta de entrada es el menú de inicio.** Muestra qué equipos están disponibles
+y abre la herramienta que necesites, sin que haya que editar código:
+
+```bash
+python experiments/start_menu.py
+```
 
 Cada módulo se puede ejecutar por separado. Elige el script según el equipo que
 tengas conectado y abre las ventanas que necesites:
@@ -47,12 +66,21 @@ tengas conectado y abre las ventanas que necesites:
 ```bash
 python experiments/experiment_launcher.py      # SMU + visor + output/transfer + I vs t
 python experiments/experiment_launcher_LED.py   # añade el LED (2ª Keithley)
-python instruments/keithley_2600_LED_driver.py # solo el driver de LED
-python instruments/arduino_shutter_controller.py # solo los obturadores
+python experiments/keithley_2600_LED_driver.py # solo el driver de LED
+python experiments/arduino_shutter_controller.py # solo los obturadores
 ```
 
-La instrumentación (GPIB, puertos serie) va cableada en cada script. Si tu equipo
-tiene otras direcciones, edita las constantes al final del fichero.
+Las direcciones de los equipos se configuran en un solo sitio,
+[`utils/lab_session.py`](utils/lab_session.py), o en un fichero
+`nanomol_config.txt` junto al repositorio:
+
+```
+# nanomol_config.txt
+smu_address = GPIB0::27::INSTR
+led_smu_address = GPIB0::26::INSTR
+shutter_port = COM7
+mux_port = COM10
+```
 
 ### Si vienes a desarrollar
 
@@ -67,6 +95,17 @@ python -c "from nanomol.instruments.keithley_2600A import keithley_2600A"
 En Spyder: **Tools → PYTHONPATH manager**, y añade la carpeta *padre* de `nanomol`.
 (Esta fragilidad —el nombre de la carpeta importa— se resuelve en la fase
 `refactor/src-layout` del plan.)
+
+### Tests
+
+```bash
+pytest tests/ -q
+```
+
+No necesitan instrumentación: un Keithley falso (`tests/test_current_vs_time.py`)
+corre el bucle de medición completo. Uno de los tests comprueba que los nombres de
+los widgets de los `.ui` coinciden con los que usan los `.py`, para que un widget
+renombrado en el Designer falle el test en vez de fallar en el banco.
 
 ### Editar la interfaz
 
