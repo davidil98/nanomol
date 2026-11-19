@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>420</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>nanomol</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="central_layout">
+    <item>
+     <layout class="QHBoxLayout" name="header_layout">
+      <item>
+       <widget class="QLabel" name="label_main">
+        <property name="text">
+         <string>nanomol</string>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>18</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="header_spacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="connection_status">
+        <property name="text">
+         <string>Sin conexion</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_mode">
+      <property name="title">
+       <string>Como quieres trabajar</string>
+      </property>
+      <layout class="QVBoxLayout" name="mode_layout">
+       <item>
+        <widget class="QRadioButton" name="mode_script_radioButton">
+         <property name="text">
+          <string>Script individual</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="mode_guided_radioButton">
+         <property name="text">
+          <string>Guia de medicion</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="mode_batch_radioButton">
+         <property name="text">
+          <string>Por lotes (secuenciador)</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_tools">
+      <property name="title">
+       <string>Herramientas</string>
+      </property>
+      <layout class="QGridLayout" name="tools_layout">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="transfer_button">
+         <property name="text">
+          <string>Transfer</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="output_button">
+         <property name="text">
+          <string>Output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="current_vs_time_button">
+         <property name="text">
+          <string>I vs t</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="more_tools_button">
+         <property name="text">
+          <string>Mas</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_state">
+      <property name="title">
+       <string>Equipos</string>
+      </property>
+      <layout class="QVBoxLayout" name="state_layout">
+       <item>
+        <widget class="QLabel" name="status_smu_label">
+         <property name="text">
+          <string>Keithley 2600A: sin comprobar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="status_led_label">
+         <property name="text">
+          <string>Driver LED: sin comprobar</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="status_mux_label">
+         <property name="text">
+          <string>Multiplexor: sin comprobar</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="bottom_spacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

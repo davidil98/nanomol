@@ -18,6 +18,7 @@ from nanomol.instruments.keithley_2600_LED_driver import keithley_2600_LED_drive
 from nanomol.utils.interactive_ui import interactive_ui
 from nanomol.utils.hdf5_datafile import hdf5_datafile
 from nanomol.utils.hdf5_viewer import hdf5_viewer
+from nanomol.utils.growable_buffer import growable_buffer
 
 class current_vs_time_LED(interactive_ui):
     """
@@ -72,7 +73,8 @@ class current_vs_time_LED(interactive_ui):
             self.smu.set_source_level(self.ch_DS, 'v', self.V_DS)
             active_V_GS = self.V_GS
             active_V_DS = self.V_DS
-            t0 = time.time()
+            # monotonic clock: not affected by a clock adjustment during a long measurement
+            t0 = time.monotonic()
             t = 0
             self.smu.set_output(self.ch_GS, 1)
             self.smu.set_output(self.ch_DS, 1)
@@ -84,22 +86,23 @@ class current_vs_time_LED(interactive_ui):
                     self.smu.set_source_level(self.ch_GS, 'v', self.V_GS)
                 if self.V_DS != active_V_DS:
                     self.smu.set_source_level(self.ch_DS, 'v', self.V_DS)
+                # timestamp before the reads, so that it refers to the moment the value was asked for
+                t = time.monotonic() - t0
                 measured_I_GS, measured_V_GS = self.smu.measure(self.ch_GS, 'iv')
                 measured_I_DS, measured_V_DS = self.smu.measure(self.ch_DS, 'iv')
                 if self.use_LED_checkBox.isChecked():
                     LED_output = self.LED.output  # last state set by the LED driver, not queried from the smu
                     measured_LED_I = self.LED.i
                     measured_LED_V = self.LED.v
-                    self.data['LED_output'].append(LED_output)
-                    self.data['measured_LED_current'].append(measured_LED_I)
-                    self.data['measured_LED_voltage'].append(measured_LED_V)
-                self.data['time'].append(t)
-                self.data['V_GS'].append(measured_V_GS)
-                self.data['I_GS'].append(measured_I_GS)
-                self.data['V_DS'].append(measured_V_DS)
-                self.data['I_DS'].append(measured_I_DS)
+                    self.data.append('LED_output', LED_output)
+                    self.data.append('measured_LED_current', measured_LED_I)
+                    self.data.append('measured_LED_voltage', measured_LED_V)
+                self.data.append('time', t)
+                self.data.append('V_GS', measured_V_GS)
+                self.data.append('I_GS', measured_I_GS)
+                self.data.append('V_DS', measured_V_DS)
+                self.data.append('I_DS', measured_I_DS)
                 self.update_plots_signal.emit()
-                t = time.time() - t0
         except BaseException as exception:
             error = exception
             raise
@@ -147,15 +150,12 @@ class current_vs_time_LED(interactive_ui):
         self.timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()) )
         
     def initialise_datasets(self):
-        self.data = {'time': [],
-                     'V_GS': [],
-                     'I_GS': [],
-                     'V_DS': [],
-                     'I_DS': []  }
+        # numpy arrays that grow geometrically: appending a point does not reallocate,
+        # and handing the data to pyqtgraph does not copy it
+        dataset_names = ['time', 'V_GS', 'I_GS', 'V_DS', 'I_DS']
         if self.use_LED_checkBox.isChecked():
-            self.data.update({'LED_output': [],
-                              'measured_LED_current': [],
-                              'measured_LED_voltage': [] })
+            dataset_names += ['LED_output', 'measured_LED_current', 'measured_LED_voltage']
+        self.data = growable_buffer(dataset_names)
         
     def save_data(self, error=None):
         """
@@ -173,7 +173,7 @@ class current_vs_time_LED(interactive_ui):
         if error is not None:
             self.active_group.attrs.create('error', ''.join(traceback.format_exception(type(error), error, error.__traceback__)))
         for dataset_name, data in self.data.items():
-            self.active_group.create_dataset(dataset_name, data=np.array(data) )
+            self.active_group.create_dataset(dataset_name, data=data )
         self.datafile.flush()
         # smu settings are read last, so that the data is already saved if the smu does not respond
         for key, value in self.smu.get_settings().items():
@@ -205,6 +205,10 @@ class current_vs_time_LED(interactive_ui):
         pen_I = pg.mkPen(color='r')
         self.I_GS_vs_time_line = self.I_GS_vs_time.plot(self.data['time'], self.data['I_GS'], pen=pen_I )
         self.I_DS_vs_time_line = self.I_DS_vs_time.plot(self.data['time'], self.data['I_DS'], pen=pen_I )
+        # long measurements have many more points than pixels: let pyqtgraph reduce them
+        # for drawing, so that the plot does not slow the measurement down
+        self.I_GS_vs_time_line.setDownsampling(auto=True, method='peak')
+        self.I_DS_vs_time_line.setDownsampling(auto=True, method='peak')
     
     def update_plots(self):
         self.I_GS_vs_time_line.setData(self.data['time'], self.data['I_GS'] )
