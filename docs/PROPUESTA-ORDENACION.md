@@ -24,14 +24,14 @@ eléctrica y optoelectrónica de transistores (MOSFET, EGOFET, OFET).
 
 Medido sobre el código:
 
-| Capa | Líneas | Naturaleza |
-|---|---:|---|
-| `experiments/` | 4.290 | Procedimientos de medición, secuenciador y menú de inicio |
-| `instruments/` | 2.199 | Adaptadores de hardware (VISA, serie) |
-| `utils/` | 911 | Persistencia HDF5, visor, base de widgets, sesión de instrumentos |
-| `analysis/` | 113 | Dos funciones de ajuste — **nadie las importa** |
-| `tests/` | 694 | 31 tests, sin hardware |
-| firmware `.ino` | 873 | Arduino: relés, obturadores, multiplexor |
+| Capa            | Líneas | Naturaleza                                                        |
+| --------------- | ------:| ----------------------------------------------------------------- |
+| `experiments/`  | 4.290  | Procedimientos de medición, secuenciador y menú de inicio         |
+| `instruments/`  | 2.199  | Adaptadores de hardware (VISA, serie)                             |
+| `utils/`        | 911    | Persistencia HDF5, visor, base de widgets, sesión de instrumentos |
+| `analysis/`     | 113    | Dos funciones de ajuste — **nadie las importa**                   |
+| `tests/`        | 694    | 31 tests, sin hardware                                            |
+| firmware `.ino` | 873    | Arduino: relés, obturadores, multiplexor                          |
 
 **El ~96 % del repositorio es adquisición.** El tratamiento de datos de verdad no está
 aquí: está en `egofets-toolkit` y `HDF5-Manager`, en repositorios separados, que ya
@@ -57,13 +57,15 @@ Tres hechos que explican la fricción actual:
 
 ### La accidentabilidad que ya existe y no está documentada
 
-| Hecho | Consecuencia |
-|---|---|
-| `experiment_launcher.py` comparte **un** `smu` y **un** `datafile` entre `output_transfer` y `current_vs_time`; ambos tienen un botón `shut down` que hace `self.smu.close()` | Pulsar "shut down" en una ventana **mata** la instrumentación de la otra |
-| Los bucles de medición de `main` no tienen `try/finally` | Un error a mitad de barrido deja el SMU con `source.output = 1` |
-| `visa_instrument` no tiene lock; las UIs se tocan desde el hilo de medición | *Segfaults* y respuestas VISA cruzadas |
-| `current_vs_time` escribe `V_GS`/`I_DS`; `transistor_transfer` escribe `measured_V_GS`; `output_transfer` escribe `measured_V1` | **Tres convenciones conviviendo**; el toolkit tuvo que deducir el esquema |
-| `transistor_transfer_laser_ON_OFF.py` llama a `self.configure_XY_grid()` y a `self.MCLS1` | **No funciona**: nadie lo ha ejecutado |
+| Hecho                                                                                                                                                                         | Consecuencia                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `experiment_launcher.py` comparte **un** `smu` y **un** `datafile` entre `output_transfer` y `current_vs_time`; ambos tienen un botón `shut down` que hace `self.smu.close()` | Pulsar "shut down" en una ventana **mata** la instrumentación de la otra  |
+| Los bucles de medición de `main` no tienen `try/finally`                                                                                                                      | Un error a mitad de barrido deja el SMU con `source.output = 1`           |
+| `visa_instrument` no tiene lock; las UIs se tocan desde el hilo de medición                                                                                                   | *Segfaults* y respuestas VISA cruzadas                                    |
+| `current_vs_time` escribe `V_GS`/`I_DS`; `transistor_transfer` escribe `measured_V_GS`; `output_transfer` escribe `measured_V1`                                               | **Tres convenciones conviviendo**; el toolkit tuvo que deducir el esquema |
+| `transistor_transfer_laser_ON_OFF.py` llama a `self.configure_XY_grid()` y a `self.MCLS1`                                                                                     | **No funciona**: nadie lo ha ejecutado                                    |
+| Los imports llevan el prefijo `nanomol.`, que solo resuelve si la carpeta **padre** está en el `PYTHONPATH`                                                                      | **Ejecutar desde la terminal falla**: `ModuleNotFoundError: No module named 'nanomol'`. En Spyder funciona porque el `PYTHONPATH` se configura a mano, y solo en la máquina donde se configuró |
+| El nombre de la carpeta del repositorio forma parte del código                                                                                                                  | Clonar con otro nombre rompe los **26 ficheros** que usan el prefijo       |
 
 La rama `experiment-planner` (no mergeada) ya arregla el `try/finally`, el `lock` de VISA
 y los plots cross-thread. **No reescribamos eso: mergearlo.**
@@ -79,19 +81,19 @@ y los plots cross-thread. **No reescribamos eso: mergearlo.**
 La consequence operativa es la **regla de reparto**, que debe quedar escrita en el
 README y en la política de contribución:
 
-| Va al repo de **instrumentación** | Va al repo de **análisis** |
-|---|---|
-| Todo lo que habla con un instrumento | Todo lo que lee datos y produce tablas o figuras |
-| Todo lo que **escribe** datos | Todo lo que **interpreta** datos |
-| El esquema HDF5 (como contrato versionado) | Los informes, figuras y ajustes |
-| El firmware Arduino | Los notebooks y apps de exploración |
+| Va al repo de **instrumentación**          | Va al repo de **análisis**                       |
+| ------------------------------------------ | ------------------------------------------------ |
+| Todo lo que habla con un instrumento       | Todo lo que lee datos y produce tablas o figuras |
+| Todo lo que **escribe** datos              | Todo lo que **interpreta** datos                 |
+| El esquema HDF5 (como contrato versionado) | Los informes, figuras y ajustes                  |
+| El firmware Arduino                        | Los notebooks y apps de exploración              |
 
 **El esquema HDF5 es el contrato.** Es el activo más valioso del repo: los `attrs`
 guardan los settings del Keithley, el timestamp, el modo de medición y los canales.
 Hoy está implícito en el código; debe pasar a ser un módulo `schema.py` versionado
 con sus nombres de dataset como constantes.
 
-### Separación deüe repositorios
+### Separación de repositorios
 
 Ya existe `git.csic.es/nanomol` (visibilidad `internal`), con `egofets-toolkit` dentro.
 La propuesta es:
@@ -143,8 +145,21 @@ si el directorio se llama *exactamente* `nanomol` (namespace package PEP 420, si
 `pip install -e .` desaparece el hack del PYTHONPATH del README y se abre la puerta al
 `.exe`.
 
+El detalle que hace este cambio barato: la carpeta intermedia **`src/nanomol/`** es
+obligatoria, pero **no obliga a tocar ni un import**. El nombre del paquete es el
+nombre de la carpeta que lo contiene, así que con `src/nanomol/utils/` los imports
+siguen siendo `nanomol.utils`, exactamente igual que ahora. Sin esa carpeta
+intermedia el paquete se llamaría `utils`, y habría que quitar el prefijo de los 26
+ficheros. Es un `git mv` y nada más.
+
+Con esto el repositorio pasa a ser un paquete de verdad: `pip install -e .` lo hace
+importable desde cualquier carpeta y con cualquier nombre de clon, y declara los
+*entry points* (`nanomol`, `nanomol-transfer`, …), que son la forma habitual de lanzar
+una aplicación de escritorio escrita en Python.
+
 **b) `services/` sin PyQt.** La lógica de medición (`run_measurement`, `configure_measurement`,
 `save_sweep_attrs`, `save_data`) sale de las clases `QWidget` a clases sin Qt. Esto:
+
 - hace la lógica **testeable** con un SMU falso,
 - permite una **segunda GUI** (web/NiceGUI, como tu `HDF5-Manager`) sobre el mismo
   backend,
@@ -212,12 +227,12 @@ Medido en esta máquina, solo la conversión de las listas, sin lecturas de
 instrumento ni dibujo:
 
 | Puntos | Listas + `np.array()` | Buffer preasignado | Factor |
-|---:|---:|---:|---:|
-| 2.000 | 0,125 s | 0,0031 s | 41× |
-| 5.000 | 0,795 s | 0,0078 s | 102× |
-| 10.000 | 3,113 s | 0,0159 s | 196× |
-| 20.000 | 12,251 s | 0,0316 s | 388× |
-| 50.000 | 77,595 s | 0,0790 s | 982× |
+| ------:| ---------------------:| ------------------:| ------:|
+| 2.000  | 0,125 s               | 0,0031 s           | 41×    |
+| 5.000  | 0,795 s               | 0,0078 s           | 102×   |
+| 10.000 | 3,113 s               | 0,0159 s           | 196×   |
+| 20.000 | 12,251 s              | 0,0316 s           | 388×   |
+| 50.000 | 77,595 s              | 0,0790 s           | 982×   |
 
 **El factor se duplica cada vez que se duplica el número de puntos**: esa es la
 firma matemática del comportamiento cuadrático. Extrapolado a una hora de
@@ -228,6 +243,7 @@ un poco más cada vez y el desfase se acumulaba*. Nada parecía estar mal, la
 aplicación funcionaba, pero cada vez iba más lenta.
 
 La corrección:
+
 - `utils/growable_buffer.py`: arrays de numpy que crecen de forma geométrica. Añadir
   un punto es de coste constante amortizado, y entregar los datos a pyqtgraph no
   copia nada.
@@ -248,11 +264,11 @@ probar la interfaz.
 
 Los tres flujos de trabajo:
 
-| Modo | Para quién | Qué hace |
-|---|---|---|
-| Script individual | El developer | Abre la herramienta directamente, como los `__main__` de siempre |
-| Guía de medición | El compañero del lab | Abre la herramienta desde un cuestionario corto |
-| Por lotes | Campañas de caracterización | El secuenciador (`experiment_planner.py`) encadena mediciones |
+| Modo              | Para quién                  | Qué hace                                                         |
+| ----------------- | --------------------------- | ---------------------------------------------------------------- |
+| Script individual | El developer                | Abre la herramienta directamente, como los `__main__` de siempre |
+| Guía de medición  | El compañero del lab        | Abre la herramienta desde un cuestionario corto                  |
+| Por lotes         | Campañas de caracterización | El secuenciador (`experiment_planner.py`) encadena mediciones    |
 
 La interfaz está diseñada en **Qt Designer** y se carga en runtime con
 `uic.loadUi()`, siguiendo las convenciones del repositorio: los widgets se
@@ -295,19 +311,19 @@ cambio en un fichero de configuración, no en el código.
 
 Cada fase es un PR independiente sobre el fork, mergeable y demostrable por separado.
 
-| # | Rama | Contenido | Riesgo | Estado |
-|---|---|---|---|---|
-| **0** | `chore/groundwork` | `.gitignore` real, `LICENSE`, `requirements.txt`/`environment.yml`, README reescrito por capas, `CODEOWNERS` | **cero** | parcial: falta `LICENSE` y `CODEOWNERS` |
-| **1** | `fix/hygiene` | Mover/archivar lo muerto: `transistor_transfer_laser_ON_OFF.py` (roto), `tenma_72_2705.py` (sin uso), `relay_interfQT.py` (PySide6 + `sys.exit()` a nivel de módulo); arreglar `fitting.py`; renombrar `throlabs_MCSL1.ui`; unificar los dos multiplexores; mover `analysis/` | bajo | **pendiente** |
-| **2** | `chore/safety` | Merge de `experiment-planner` (trae `try/finally`, lock de VISA, plots cross-thread) | medio | **hecho** (`383a041`, `9d7650f`) |
-| **2b** | `fix/timing` | Buffer preasignado, reloj monótono, timestamp antes de la lectura, downsampling | bajo | **hecho** (`4536cc9`) |
-| **3** | `refactor/led` | Unificar LED / no-LED con colaborador opcional (ver §6) | medio | **pendiente** |
-| **4** | `refactor/src-layout` | `src/nanomol/` + entry points. **Desbloquea el `.exe`** | medio, diff grande pero mecánico | parcial: `pyproject.toml` listo, falta mover a `src/` |
-| **5** | `refactor/services` | Extraer el dominio a `services/`, sin PyQt. Empezar por `transistor_transfer` | medio | **pendiente** |
-| **6** | `docs/schema` | `io/schema.py` + `docs/data_format.md` + tests | bajo | parcial: el documento existe, falta el módulo |
-| **7** | `feat/launcher` | Menú de inicio + `LabSession` | medio | **hecho** (`4536cc9`) |
-| **8** | `feat/dist` | `pyinstaller.spec`, `.exe`, releases | bajo | **pendiente** |
-| **9** | `chore/migrate` | Migración a `git.csic.es/nanomol/`, alta de miembros, política de releases | organizativo | **pendiente** |
+| #      | Rama                  | Contenido                                                                                                                                                                                                                                                                     | Riesgo                           | Estado                                                |
+| ------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------- |
+| **0**  | `chore/groundwork`    | `.gitignore` real, `LICENSE`, `requirements.txt`/`environment.yml`, README reescrito por capas, `CODEOWNERS`                                                                                                                                                                  | **cero**                         | parcial: falta `LICENSE` y `CODEOWNERS`               |
+| **1**  | `fix/hygiene`         | Mover/archivar lo muerto: `transistor_transfer_laser_ON_OFF.py` (roto), `tenma_72_2705.py` (sin uso), `relay_interfQT.py` (PySide6 + `sys.exit()` a nivel de módulo); arreglar `fitting.py`; renombrar `throlabs_MCSL1.ui`; unificar los dos multiplexores; mover `analysis/` | bajo                             | **pendiente**                                         |
+| **2**  | `chore/safety`        | Merge de `experiment-planner` (trae `try/finally`, lock de VISA, plots cross-thread)                                                                                                                                                                                          | medio                            | **hecho** (`383a041`, `9d7650f`)                      |
+| **2b** | `fix/timing`          | Buffer preasignado, reloj monótono, timestamp antes de la lectura, downsampling                                                                                                                                                                                               | bajo                             | **hecho** (`4536cc9`)                                 |
+| **3**  | `refactor/led`        | Unificar LED / no-LED con colaborador opcional (ver §6)                                                                                                                                                                                                                       | medio                            | **pendiente**                                         |
+| **4**  | `refactor/src-layout` | `src/nanomol/` + entry points. **Desbloquea el `.exe`**. Los imports no cambian: es un `git mv`                                                                                                                                                                                                                       | medio, diff grande pero mecánico | parcial: `pyproject.toml` listo, falta mover a `src/` |
+| **5**  | `refactor/services`   | Extraer el dominio a `services/`, sin PyQt. Empezar por `transistor_transfer`                                                                                                                                                                                                 | medio                            | **pendiente**                                         |
+| **6**  | `docs/schema`         | `io/schema.py` + `docs/data_format.md` + tests                                                                                                                                                                                                                                | bajo                             | parcial: el documento existe, falta el módulo         |
+| **7**  | `feat/launcher`       | Menú de inicio + `LabSession`                                                                                                                                                                                                                                                 | medio                            | **hecho** (`4536cc9`)                                 |
+| **8**  | `feat/dist`           | `pyinstaller.spec`, `.exe`, releases                                                                                                                                                                                                                                          | bajo                             | **pendiente**                                         |
+| **9**  | `chore/migrate`       | Migración a `git.csic.es/nanomol/`, alta de miembros, política de releases                                                                                                                                                                                                    | organizativo                     | **pendiente**                                         |
 
 **El orden tiene una razón:** 2 antes de 3 y 5, porque la rama del planner arregla el
 `try/finally` y el lock, y refactorizar sobre `main` reintroduce los bugs. 4 antes de 5
@@ -328,8 +344,8 @@ transistor_output_transfer_LED.py (304)┘  = un fork, no una extensión
 Hallazgo clave al comparar los `.ui`: **el `.ui` LED es casi un superconjunto del
 no-LED**, pero perdió un control:
 
-| Solo en el `.ui` no-LED | Solo en el `.ui` LED |
-|---|---|
+| Solo en el `.ui` no-LED         | Solo en el `.ui` LED             |
+| ------------------------------- | -------------------------------- |
 | `reset_plot_widgets_pushbutton` | `use_LED_checkBox`, `groupBox_6` |
 
 Es decir: el LED no es "el original + LED", es una **bifurcación que perdió un botón**.
@@ -371,7 +387,7 @@ class transistor_output_transfer(interactive_ui):
 ## 7. Lo que falta en el repo (checklist deniejecución)
 
 - [ ] `.gitignore` real: `*.hdf5`, `*.csv`, `.spyderproject`, `__pycache__/`, `*.pyc`
-      (hoy solo `__pycache__`; ya se colaron un `test_01.hdf5` y un `.pyc`)
+  (hoy solo `__pycache__`; ya se colaron un `test_01.hdf5` y un `.pyc`)
 - [ ] `LICENSE` (hoy el repo no tiene ninguna: sin licencia, sin permiso legal de uso)
 - [ ] `requirements.txt` o `environment.yml` con versiones fijadas
 - [ ] `CONTRIBUTING.md` con la regla de reparto (§2) y el flujo de PR
@@ -448,14 +464,14 @@ mkdir /tmp/x && cp -r . /tmp/x/otro_nombre && cd /tmp/x \
 
 ## Anexo B · Bugs concretos citados, con ubicación
 
-| Bug | Ubicación |
-|---|---|
-| `shut down` cierra recursos compartidos | `experiments/current_vs_time.py:146-148`, `experiments/transistor_output_transfer.py:273-275` |
-| Sin `try/finally` en el bucle de medición | `experiments/transistor_transfer.py:94-151` |
-| Llamada VISA desde el hilo de medición | `experiments/current_vs_time_LED.py` (rama `main`) vs. `experiment-planner` |
-| `'sinudoid'` vs `'sinusoid'` | `analysis/fitting.py:82` vs `104` |
-| `a = params` en vez de `params[0]` | `analysis/fitting.py:101`, `108` |
-| `sys.exit()` a nivel de módulo | `utils/relay_interfQT.py:84` |
-| `.ui` con nombre mal escrito | `instruments/thorlabs_MCLS1.py:113` → `throlabs_MCSL1.ui` |
-| `configure_XY_grid()` inexistente | `experiments/transistor_transfer_laser_ON_OFF.py:45` |
-| `self.MCLS1` no definido | `experiments/transistor_transfer_laser_ON_OFF.py:66` |
+| Bug                                       | Ubicación                                                                                     |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `shut down` cierra recursos compartidos   | `experiments/current_vs_time.py:146-148`, `experiments/transistor_output_transfer.py:273-275` |
+| Sin `try/finally` en el bucle de medición | `experiments/transistor_transfer.py:94-151`                                                   |
+| Llamada VISA desde el hilo de medición    | `experiments/current_vs_time_LED.py` (rama `main`) vs. `experiment-planner`                   |
+| `'sinudoid'` vs `'sinusoid'`              | `analysis/fitting.py:82` vs `104`                                                             |
+| `a = params` en vez de `params[0]`        | `analysis/fitting.py:101`, `108`                                                              |
+| `sys.exit()` a nivel de módulo            | `utils/relay_interfQT.py:84`                                                                  |
+| `.ui` con nombre mal escrito              | `instruments/thorlabs_MCLS1.py:113` → `throlabs_MCSL1.ui`                                     |
+| `configure_XY_grid()` inexistente         | `experiments/transistor_transfer_laser_ON_OFF.py:45`                                          |
+| `self.MCLS1` no definido                  | `experiments/transistor_transfer_laser_ON_OFF.py:66`                                          |
