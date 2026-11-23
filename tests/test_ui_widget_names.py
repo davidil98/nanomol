@@ -34,11 +34,13 @@ import pytest
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(TESTS_DIR)
+PACKAGE_ROOT = os.path.join(REPO_ROOT, 'src', 'nanomol')
 
 # the package is imported as "nanomol.", so the folder that contains it has to
 # be on the path; conftest.py does the same when the tests run
-if os.path.dirname(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, os.path.dirname(REPO_ROOT))
+SRC_DIR = os.path.join(REPO_ROOT, 'src')
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
 # folders that hold the .ui files and the python files that use them
 UI_FOLDERS = ['experiments', 'instruments', 'utils']
@@ -65,7 +67,7 @@ def ui_files():
     """ Every .ui file of the repository. """
     found = []
     for folder in UI_FOLDERS:
-        folder_path = os.path.join(REPO_ROOT, folder)
+        folder_path = os.path.join(PACKAGE_ROOT, folder)
         if not os.path.isdir(folder_path):
             continue
         for name in sorted(os.listdir(folder_path)):
@@ -154,7 +156,7 @@ def class_attributes(py_path):
         tree = ast.parse(py_file.read(), filename=py_path)
 
     module_name = 'nanomol.' + os.path.splitext(
-        os.path.relpath(py_path, REPO_ROOT))[0].replace(os.sep, '.')
+        os.path.relpath(py_path, PACKAGE_ROOT))[0].replace(os.sep, '.')
 
     try:
         module = importlib.import_module(module_name)

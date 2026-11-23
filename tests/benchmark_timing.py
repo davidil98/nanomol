@@ -18,7 +18,7 @@ import numpy as np
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(TESTS_DIR)
-sys.path.insert(0, os.path.dirname(REPO_ROOT))
+sys.path.insert(0, os.path.join(REPO_ROOT, 'src'))
 
 from nanomol.utils.growable_buffer import growable_buffer
 

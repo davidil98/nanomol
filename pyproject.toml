@@ -34,11 +34,13 @@ dist = [
     "pyinstaller>=6.10",
 ]
 
+[project.gui-scripts]
+nanomol = "nanomol.experiments.start_menu:main"
+
 [project.scripts]
-nanomol = "nanomol.ui.launcher:main"
-nanomol-transfer = "nanomol.experiments.transistor_transfer:main"
-nanomol-output = "nanomol.experiments.transistor_output_transfer:main"
-nanomol-timeseries = "nanomol.experiments.current_vs_time:main"
+nanomol-transfer = "nanomol.entrypoints:transfer"
+nanomol-output = "nanomol.entrypoints:output"
+nanomol-timeseries = "nanomol.entrypoints:timeseries"
 
 [project.urls]
 Repository = "https://github.com/dean-nanomol/nanomol"
@@ -49,6 +51,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# The .ui files are loaded at runtime by uic.loadUi() and the .ino files are
+# the Arduino firmware. They are data, not python modules, so without this
+# section a wheel would install the code without them.
+[tool.setuptools.package-data]
+"*" = ["*.ui"]
+"nanomol.instruments" = ["arduino/*/*.ino"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

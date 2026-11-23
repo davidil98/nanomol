@@ -17,8 +17,9 @@ import pytest
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.dirname(TESTS_DIR)
-if os.path.dirname(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, os.path.dirname(REPO_ROOT))
+SRC_DIR = os.path.join(REPO_ROOT, 'src')
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
 
 h5py = pytest.importorskip('h5py')
 QtWidgets = pytest.importorskip('PyQt6.QtWidgets')

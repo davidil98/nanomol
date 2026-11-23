@@ -1,15 +1,20 @@
+# Environment for developing and running nanomol.
+#
+# This file only creates the interpreter and installs the project. The
+# dependencies live in pyproject.toml, which is the single source of truth;
+# do not repeat them here. Run this command from the repository root, because
+# "-e ." is resolved against the current directory:
+#
+#     conda env create -f environment.yml
+#     conda activate nanomol
+#
+# With uv the equivalent is "uv sync" (it reads pyproject.toml and uv.lock).
+# Use one of the two, not both resolution paths on the same environment.
 name: nanomol
 channels:
   - conda-forge
 dependencies:
-  - python>=3.10,<3.15
-  - pyqt6
-  - pyqtgraph
-  - numpy
-  - scipy
-  - h5py
-  - pyvisa
-  - pyserial
-  - pytest
+  - python=3.14
+  - pip
   - pip:
-    - pyinstaller
+      - -e .[dev]

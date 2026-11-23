@@ -19,12 +19,12 @@ Contexto completo y plan de trabajo: [`docs/PROPUESTA-ORDENACION.md`](docs/PROPU
 
 | Ruta | Contenido |
 |---|---|
-| `instruments/` | Adaptadores de hardware. `visa_instrument.py` y `serial_instrument.py` son las bases. |
-| `experiments/` | Procedimientos de medición, el secuenciador y el menú de inicio. Hoy heredan de `QWidget`. |
-| `utils/` | `hdf5_datafile.py`, `hdf5_viewer.py`, `interactive_ui.py`, `lab_session.py`, `growable_buffer.py`. |
-| `analysis/` | Helpers de ajuste. Huérfanos: nadie los importa. |
-| `instruments/arduino/` | Firmware `.ino`. Se despliega en las placas, no se importa. |
-| `tests/` | 31 tests, sin hardware. |
+| `src/nanomol/instruments/` | Adaptadores de hardware. `visa_instrument.py` y `serial_instrument.py` son las bases. |
+| `src/nanomol/experiments/` | Procedimientos de medición, el secuenciador y el menú de inicio. Hoy heredan de `QWidget`. |
+| `src/nanomol/utils/` | `hdf5_datafile.py`, `hdf5_viewer.py`, `interactive_ui.py`, `lab_session.py`, `growable_buffer.py`. |
+| `src/nanomol/analysis/` | Helpers de ajuste. Huérfanos: nadie los importa. |
+| `src/nanomol/instruments/arduino/` | Firmware `.ino`. Se despliega en las placas, no se importa. |
+| `tests/` | 30 tests, sin hardware (27 pasan, 3 se saltan por ficheros conocidos). |
 | `docs/` | Propuesta de ordenación y formato de datos. |
 | `.archify/` | Artefactos de diagrama (HTML autocontenido). |
 
@@ -48,7 +48,7 @@ repositorios externos (`egofets-toolkit`, `HDF5-Manager`).
 instrumento real durante un test. Ya hay uno en `tests/test_current_vs_time.py`.
 
 **Los datos de una medición se acumulan en `growable_buffer`, no en listas.**
-`utils/growable_buffer.py` mantiene arrays de numpy que crecen de forma geométrica.
+`src/nanomol/utils/growable_buffer.py` mantiene arrays de numpy que crecen de forma geométrica.
 Con listas de Python, pyqtgraph convierte el historial entero en un array en cada
 actualización del plot, y el coste de la medición crece de forma cuadrática: medido
 en esta máquina, 50.000 puntos costaban 77,6 s solo en conversiones, frente a
@@ -105,9 +105,16 @@ Solo se auto-enlazan esos cuatro tipos.
 **Los `.ui` van junto a su `.py`.** Es intencionado: el layout y el comportamiento se
 editan en el mismo sitio.
 
-**El prefijo de import es `nanomol.`** y el directorio debe llamarse `nanomol`
-(namespace package PEP 420, sin `__init__.py`). Esto es frágil y se arregla en la fase
-`refactor/src-layout`; hasta entonces, no lo rompas.
+**El paquete vive en `src/nanomol/` y se importa como `nanomol.`.** Se instala en modo
+editable (`pip install -e .[dev]`, o `conda env create -f environment.yml`), así que el
+nombre de la carpeta del clon ya no importa y no hace falta `PYTHONPATH`. Los imports
+siguen siendo `nanomol.experiments`, `nanomol.instruments`, `nanomol.utils` y
+`nanomol.analysis`. Si añades un subpaquete, necesita su `__init__.py`.
+
+**`pyproject.toml` es la única fuente de verdad de dependencias y entry points.**
+`environment.yml` solo crea el intérprete e instala el proyecto; no repitas paquetes
+en los dos ficheros. Los `.ui` y los `.ino` son datos: si añades uno, comprueba que
+entra en `[tool.setuptools.package-data]`.
 
 **El repositorio está en PyQt6.** `from PyQt6 import QtWidgets`, `app.exec()` (no
 `exec_()`, que no existe en PyQt6) y las acciones de Qt viven en `QtGui`, no en
@@ -139,22 +146,22 @@ del coste cuadrático de `4536cc9`.
 
 | Error | Dónde | Estado |
 |---|---|---|
-| `shutdown()` cierra `smu`/`datafile` compartidos | `experiments/current_vs_time.py`, `experiments/transistor_output_transfer.py` | pendiente |
-| Sin `try/finally` en el bucle de medición | `experiments/transistor_transfer.py` | **corregido** |
-| Llamada VISA cruzada entre hilos | `experiments/current_vs_time_LED.py` | **corregido** (lock en `visa_instrument`) |
-| Plots modificados desde el hilo de medición | `experiments/transistor_output_transfer.py` | **corregido** (señales) |
-| Coste cuadrático en las mediciones largas | `experiments/current_vs_time.py` | **corregido** (`growable_buffer`) |
-| `'sinudoid'` vs `'sinusoid'` | `analysis/fitting.py` | pendiente |
-| `a = params` en vez de `params[0]` | `analysis/fitting.py` | pendiente |
-| `sys.exit()` a nivel de módulo | `utils/relay_interfQT.py` | pendiente |
+| `shutdown()` cierra `smu`/`datafile` compartidos | `src/nanomol/experiments/current_vs_time.py`, `src/nanomol/experiments/transistor_output_transfer.py` | pendiente |
+| Sin `try/finally` en el bucle de medición | `src/nanomol/experiments/transistor_transfer.py` | **corregido** |
+| Llamada VISA cruzada entre hilos | `src/nanomol/experiments/current_vs_time_LED.py` | **corregido** (lock en `visa_instrument`) |
+| Plots modificados desde el hilo de medición | `src/nanomol/experiments/transistor_output_transfer.py` | **corregido** (señales) |
+| Coste cuadrático en las mediciones largas | `src/nanomol/experiments/current_vs_time.py` | **corregido** (`growable_buffer`) |
+| `'sinudoid'` vs `'sinusoid'` | `src/nanomol/analysis/fitting.py` | pendiente |
+| `a = params` en vez de `params[0]` | `src/nanomol/analysis/fitting.py` | pendiente |
+| `sys.exit()` a nivel de módulo | `src/nanomol/utils/relay_interfQT.py` | pendiente |
 | `.ui` con nombre mal escrito | `thorlabs_MCLS1.py` → `throlabs_MCSL1.ui` | pendiente |
-| `configure_XY_grid()` y `self.MCLS1` inexistentes | `experiments/transistor_transfer_laser_ON_OFF.py` | pendiente (fichero roto, excluido del test) |
+| `configure_XY_grid()` y `self.MCLS1` inexistentes | `src/nanomol/experiments/transistor_transfer_laser_ON_OFF.py` | pendiente (fichero roto, excluido del test) |
 
 ## Fuera de alcance
 
-- **No añadas dependencias sin fijarlas** en `requirements.txt` / `environment.yml`.
+- **No añadas dependencias sin fijarlas** en `pyproject.toml`.
 - **No migres nada a `git.csic.es` sin acuerdo explícito.** El grupo de destino existe
   (`nanomol`, visibilidad `internal`) y es la propuesta a largo plazo, pero la
   migración es una fase acordada, no un efecto secundario de un PR.
-- **No borres `instruments/arduino/*.ino`.** Son firmware que se despliega en placas
+- **No borres `src/nanomol/instruments/arduino/*.ino`.** Son firmware que se despliega en placas
   reales; no son código Python muerto aunque no se importen.
