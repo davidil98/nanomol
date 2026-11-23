@@ -4,8 +4,8 @@
 # congelar el fichero (ver docs/PROPUESTA-ORDENACION.md, sección 7).
 
 # Interfaz gráfica
-PyQt5>=5.15,<6          # 5.15.12 verificado
-pyqtgraph>=0.13        # plots en vivo de las curvas de medición
+PyQt6>=6.6              # 6.11.0 verificado
+pyqtgraph>=0.14        # plots en vivo de las curvas de medición
 
 # Datos y cálculo
 numpy>=1.26            # 2.5.4 verificado
